@@ -59,8 +59,13 @@ def read_record_short(phsf):
     Y = struct.unpack('f', phsf.read(4))[0]
     U = struct.unpack('f', phsf.read(4))[0]
     V = struct.unpack('f', phsf.read(4))[0]
-    W = math.sqrt(1.0 - (U*U + V*V))
     WT = struct.unpack('f', phsf.read(4))[0]
+
+    W = 1.0 - (U*U + V*V)
+    if W < 0.0:
+        W = 0.0
+    W = math.sqrt(W)
+
     if (WT < 0.0): # weight sign is in fact Z directional cosine sign
         WT = -WT
         W  = -W
@@ -81,11 +86,77 @@ def read_record_long(phsf):
     Y = struct.unpack('f', phsf.read(4))[0]
     U = struct.unpack('f', phsf.read(4))[0]
     V = struct.unpack('f', phsf.read(4))[0]
-    W = math.sqrt(1.0 - (U*U + V*V))
     WT = struct.unpack('f', phsf.read(4))[0]
     ZLAST = struct.unpack('f', phsf.read(4))[0]
+
+    W = 1.0 - (U*U + V*V)
+    if W < 0.0:
+        W = 0.0
+    W = math.sqrt(W)
+
     if (WT < 0.0): # weight sign is in fact Z directional cosine sign
         WT = -WT
         W  = -W
 
     return (LATCH, E, X, Y, U, V, W, WT, ZLAST)
+
+def load_events(filename, nof_events = -1):
+    """
+    load all photon events
+
+    :param filename: open phase space file name
+    :param nof_events: number of events to read, -1 means read all of them
+    """
+
+    with open(filename, "rb") as phsf:
+
+        m, NPPHSP, NPHOTPHSP, EKMAX, EKMIN, NINCP = read_header(phsf)
+
+        if nof_events < 0:
+            nof_events = NPPHSP
+        elif nof_events > NPPHSP:
+            nof_events = NPPHSP
+
+        bit29 = 0b0100000000000000000000000000000
+        bit30 = 0b1000000000000000000000000000000
+
+        nof_photons   = 0
+        nof_electrons = 0
+        nof_positrons = 0
+
+        events = []
+        for k in range (0, nof_events):
+            if m == SHORT:
+                (LATCH, E, X, Y, U, V, W, WT) = read_record_short(phsf)
+                ZLAST = 0.0
+            elif m == LONG:
+                (LATCH, E, X, Y, U, V, W, WT, ZLAST) = read_record_long(phsf)
+
+            IQ = 0
+            if (LATCH & bit30) != 0:
+                IQ = -1
+                nof_electrons += 1
+            elif (LATCH & bit29) != 0:
+                IQ = 1
+                nof_positrons += 1
+
+            if IQ == 0:
+                nof_photons += 1
+                if E < 0.0:
+                    E = -E
+
+                event = (WT, E, X, Y, ZLAST, U, V, W)
+                events.append(event)
+
+        return (events, nof_photons, nof_electrons, nof_positrons)
+
+def write_all_events(filename , events):
+    """
+    Given the file name, write out all events
+    """
+
+    with open(filename, "wt") as f:
+        for e in events:
+            f.write('{0:15.4e} {1:15.4e} {2:15.4e} {3:15.4e} {4:15.4e} {5:15.4e} {6:15.4e} {7:15.4e}\n'.format(e[0], e[1], e[2], e[3], e[4], e[5], e[6], e[7]))
+
+    return None

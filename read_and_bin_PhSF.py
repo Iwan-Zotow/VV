@@ -1,59 +1,107 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import math
+import struct
+
 import matplotlib.pyplot as plt
 
 import BEAMphsf
-from H1Du import H1Du
+from H1Dn import H1Dn
 
-with open("C25.egsphsp1", "rb") as phsf:
-    
-    m, NPPHSP, NPHOTPHSP, EKMAX, EKMIN, NINCP = BEAMphsf.read_header(phsf)
-    
-    print(m) # mode
-    print(NPPHSP) # total nof of particle records
-    print(NPHOTPHSP) # total nof of photon records
-    print(EKMAX) # max kinetic energy, MeV
-    print(EKMIN) # min electron kinetic energy, MeV, shall be ECUT-0.511
-    print(NINCP) # nof original incident particles
-    print("================ End of PhSF header ======================")
+def make_scale(nof_bins_hi2me):
+    """
+    """
+    lo = 0.01
+    me = 1.170001
+    hi = 1.330001
 
-    he = H1Du(50, 0.01, 1.33)
-    hx = H1Du(31, -15.5, 15.5)
-    hy = H1Du(31, -15.5, 15.5)
+    # bins in hi-to-me region
+    step = (hi - me)/float(nof_bins_hi2me)
 
-    for i in range (0, NPPHSP):
-        (LATCH, E, X, Y, U, V, W, WT, ZLAST) = BEAMphsf.read_record_long(phsf)
-        if LATCH == 8388608: #8388608=2^23, this is photon, see PIRS-509, page #96
-            if E<0:
-                E = -E
+    scale = []
 
-            he.fill(E, WT)
-            hx.fill(X, WT)
-            hy.fill(Y, WT)
+    # filling lo-to-me region with the same bin size
+    prev = me
+    while True:
+        scale.append(prev)
+        prev -= step
+        if prev < lo:
+            break
 
-    print(he.nof_events(), he.integral())
+    if scale[-1] != lo:
+        scale.append(lo)
 
-    X = []
-    Y = []
+    # make it ascending
+    scale = sorted(scale)
 
-    step = he.step()
-    for i in range (-1, he.size()+1):
-        x = he.lo() + (float(i) + 0.5)*step
-        d = he[i] # data from bin with index i
-        y = d[0]  # first part of bin is collected weights
-        X.append(x)
-        Y.append(y)
+    # finally fill me-to-hi
+    for k in range(1,nof_bins_hi2me):
+        scale.append(me + float(k)*step)
 
-    width = 0.8*step
-    p1 = plt.bar(X, Y, width, color='r')
+    scale.append(hi)
 
-    plt.xlabel('Energy(MeV)')
-    plt.ylabel('N of photons')
-    plt.title('Energy distribution')
+    return scale
 
-    plt.grid(True);
-    plt.tick_params(axis='x', direction='out')
-    plt.tick_params(axis='y', direction='out')
+scale = make_scale(5)
+#print(len(scale))
+#print(scale)
 
-    plt.show()
+(events, nof_photons, nof_electrons, nof_positrons) = BEAMphsf.load_events("C25.egsphsp1", 10000)
+
+print(len(events), nof_photons, nof_electrons, nof_positrons)
+
+#write_all_events("QQQ", events)
+
+he = H1Dn(scale)
+
+for e in events:
+    WT = e[0]
+    E  = e[1]
+    he.fill(E, WT)
+
+print(he.nof_events(), he.integral())
+
+print(he.underflow())
+print(he.overflow())
+
+X = []
+Y = []
+W = []
+
+scale = he.x()
+n     = len(scale)
+norm  = 1.0/he.integral()
+
+sum = 0.0
+
+for k in range (-1, he.size()+1):
+    x = 0.0
+    w = (he.lo() - x)
+    if k == he.size():
+        w = (scale[-1]-scale[-2])
+        x = he.hi()
+    elif k >= 0:
+        w = (scale[k+1] - scale[k])
+        x = scale[k]
+
+    d = he[k]     # data from bin with index k
+    y = d[0] / w  # first part of bin is collected weights
+    y = y * norm
+    X.append(x)
+    Y.append(y)
+    W.append(w)
+    sum += y*w
+
+print(sum)
+
+p1 = plt.bar(X, Y, W, color='r')
+
+plt.xlabel('Energy(MeV)')
+plt.ylabel('PDF of the photons')
+plt.title('Energy distribution')
+
+plt.grid(True);
+plt.tick_params(axis='x', direction='out')
+plt.tick_params(axis='y', direction='out')
+
+plt.show()
