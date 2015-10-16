@@ -6,43 +6,10 @@ import struct
 import matplotlib.pyplot as plt
 
 import BEAMphsf
-from H1Dn import H1Dn
+import H1Dn
 
-def make_scale(nof_bins_hi2me):
-    """
-    """
-    lo = 0.01
-    me = 1.170001
-    hi = 1.330001
+scale = BEAMphsf.make_energy_scale(5, lo = 0.01, me = 1.170001, hi = 1.330001)
 
-    # bins in hi-to-me region
-    step = (hi - me)/float(nof_bins_hi2me)
-
-    scale = []
-
-    # filling lo-to-me region with the same bin size
-    prev = me
-    while True:
-        scale.append(prev)
-        prev -= step
-        if prev < lo:
-            break
-
-    if scale[-1] != lo:
-        scale.append(lo)
-
-    # make it ascending
-    scale = sorted(scale)
-
-    # finally fill me-to-hi
-    for k in range(1,nof_bins_hi2me):
-        scale.append(me + float(k)*step)
-
-    scale.append(hi)
-
-    return scale
-
-scale = make_scale(5)
 #print(len(scale))
 #print(scale)
 
@@ -52,7 +19,7 @@ print(len(events), nof_photons, nof_electrons, nof_positrons)
 
 #write_all_events("QQQ", events)
 
-he = H1Dn(scale)
+he = H1Dn.H1Dn(scale)
 
 for e in events:
     WT = e[0]

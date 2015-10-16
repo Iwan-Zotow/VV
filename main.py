@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 #
-# requires python 3.x. tested with 3.4.2
-#
 
 import math
 import numpy as np
@@ -16,10 +14,10 @@ def make_scale(nof_bins_hi2me):
     lo = 0.01
     me = 1.17000000001
     hi = 1.33000000001
-    
+
     # bins in hi-to-me region
     step = (hi - me)/float(nof_bins_hi2me)
-    
+
     scale = []
 
     # filling lo-to-me region with the same bin size
@@ -29,19 +27,19 @@ def make_scale(nof_bins_hi2me):
         prev -= step
         if prev < lo:
             break
-            
+
     if scale[-1] != lo:
         scale.append(lo)
-        
+
     # make it ascending
     scale = sorted(scale)
-    
+
     # finally fill me-to-hi
     for k in range(1,nof_bins_hi2me):
         scale.append(me + float(k)*step)
-        
+
     scale.append(hi)
-    
+
     return scale
 
 
@@ -50,7 +48,7 @@ def load_events(filename):
     load all events from a text file (W,E,X,Y,Z,WX,WY,WZ)
     """
     events = []
-    
+
     with open(filename) as f:
         for line in f:
             #if line.find("G4W") != -1:
@@ -63,13 +61,13 @@ def load_events(filename):
             e    = []
             for n in s:
                 e.append(float(n))
-                
+
             if len(e) == 8:
                 events.append(e)
-            
+
     if len(events) == 0:
         return None
-        
+
     return events
 
 scale = make_scale(5)
@@ -89,7 +87,7 @@ for e in events:
 
 print(he.nof_events(), he.integral())
 
-print(he.underflow())   
+print(he.underflow())
 print(he.overflow())
 
 X = []
@@ -111,7 +109,7 @@ for k in range (-1, he.size()+1):
     elif k >= 0:
         w = (scale[k+1] - scale[k])
         x = scale[k]
-        
+
     d = he[k]     # data from bin with index k
     y = d[0] / w  # first part of bin is collected weights
     y = y * norm
@@ -128,7 +126,7 @@ p1 = plt.bar(X, Y, W, color='r')
 plt.xlabel('Energy(MeV)')
 plt.ylabel('PDF of the photons')
 plt.title('Energy distribution')
-    
+
 plt.grid(True);
 plt.tick_params(axis='x', direction='out')
 plt.tick_params(axis='y', direction='out')
