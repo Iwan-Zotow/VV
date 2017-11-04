@@ -1,6 +1,6 @@
 import sys
-import struct
 import math
+import struct
 
 SHORT = 0
 LONG  = 1
@@ -200,7 +200,7 @@ def make_energy_scale(nof_bins_hi2me, lo, me, hi):
     scale = sorted(scale)
 
     # finally fill me-to-hi
-    for k in range(1,nof_bins_hi2me):
+    for k in range(1, nof_bins_hi2me):
         scale.append(me + float(k)*step)
 
     scale.append(hi)
