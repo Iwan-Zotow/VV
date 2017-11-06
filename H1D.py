@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+Baseline histogram class, collection related code and data
+"""
+
 class H1D(object):
 
     DATA = 0 # data index
@@ -22,10 +28,10 @@ class H1D(object):
         self._underflow = (0.0, 0, 0.0)
         self._overflow  = (0.0, 0, 0.0)
 
-        self._data     = [ (0.0, 0, 0.0) for k in range(self._n)]
+        self._data     = [(0.0, 0, 0.0) for k in range(self._n)]
 
     # base functionality - filling
-    def fill(self, x, weight = 1.0):
+    def fill(self, x, weight=1.0):
         """
         Fill bin given event position and weight
         """

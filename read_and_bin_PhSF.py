@@ -7,13 +7,14 @@ import matplotlib.pyplot as plt
 
 import BEAMphsf
 import H1Dn
+import beam_loader
 
 scale = BEAMphsf.make_energy_scale(5, lo = 0.01, me = 1.170001, hi = 1.330001)
 
 #print(len(scale))
 #print(scale)
 
-(events, nof_photons, nof_electrons, nof_positrons) = BEAMphsf.load_events("C25.egsphsp1", 10000)
+(events, nof_photons, nof_electrons, nof_positrons) = beam_loader.load_events("C25.egsphsp1", 10000)
 
 print(len(events), nof_photons, nof_electrons, nof_positrons)
 

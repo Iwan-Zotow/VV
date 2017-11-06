@@ -1,3 +1,9 @@
+#!/usr/bin/env python3
+
+"""
+Uniform sized bin histogram class, bins making and bin index code
+"""
+
 from H1D import H1D
 
 class H1Du(H1D):
@@ -23,7 +29,9 @@ class H1Du(H1D):
         if (x > self._hi):
             return self._n;
 
-        return int( (x-self._lo)/self._step )
+        idx = int( (x - self._lo)/self._step )
+
+        return idx if idx < self._n else self._n-1
 
     # observers
     def step(self):
@@ -57,6 +65,8 @@ if __name__ == "__main__":
         print(bin[0]/norm, bin[1])
     over = g.overflow()
     print(over[0]/norm, over[1])
+    print("")
+    print(norm, size)
     print( "----------------------------" )
 
     # printing h
@@ -70,3 +80,5 @@ if __name__ == "__main__":
         print(bin[0]/norm, bin[1])
     over = h.overflow()
     print(over[0]/norm, over[1])
+    print("")
+    print(norm, size)

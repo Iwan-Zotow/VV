@@ -1,11 +1,15 @@
+#!/usr/bin/env python3
+
+"""
+Nonuniform bin histogram class, bins making and bin index code
+"""
+
 from H1D import H1D
 
 class H1Dn(H1D):
     """
     Nonuniform step histogram
     """
-
-    # constructor
     def __init__(self, x):
         self._x = sorted(x)
 
@@ -73,7 +77,7 @@ if __name__ == "__main__":
         print(bin[0]/norm, bin[1])
     over = g.overflow()
     print(over[0]/norm, over[1])
-    print( "----------------------------" )
+    print("----------------------------")
 
     # printing h
     norm = h.integral()
