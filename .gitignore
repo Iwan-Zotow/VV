@@ -58,3 +58,9 @@ target/
 
 # Subversion
 .svn/
+
+# PDS
+*.pdf
+
+# jupyter notebooks
+.ipynb_checkpoints/
