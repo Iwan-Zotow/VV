@@ -12,6 +12,7 @@ def write_all_events(filename , events):
 
     return None
 
+
 def make_energy_scale(nof_bins_hi2me, lo, me, hi):
     """
     Out of number of bins between hi and me,
@@ -45,6 +46,7 @@ def make_energy_scale(nof_bins_hi2me, lo, me, hi):
 
     return scale
 
+
 def move_event(e, zstart, zend):
     """
     Move particles from current plane to plane shifted by zshift
@@ -60,9 +62,7 @@ def move_event(e, zstart, zend):
     wz = e[7]
 
     s = 0.0
-    if wz == 0.0:
-        return (-1.0, -1.0, -1.0)
+    if wz != 0.0:
+        s = (zend - zstart) / wz
 
-    s = (zend - zstart) / wz
-
-    return (X + wx*s, Y + wy*s, Z + wz*s)
+    return (X + wx*s, Y + wy*s, zend)
